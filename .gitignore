@@ -1,2 +1,6 @@
 /.buildpath
 /*.sql
+/*.gz
+/*.tgz
+/*.tar
+/*.zip
