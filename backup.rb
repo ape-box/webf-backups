@@ -4,6 +4,9 @@ require 'yaml'
 require './ape_box'
 
 conf = YAML.load_file('config.yaml')
+today = Time.now
+date_string = "#{today.year}#{today.month}#{today.day}"
+
 Dir.chdir conf["webapps_directory"]
 Dir.foreach Dir.pwd do |name|
   # "path" must be a fully qualified directory name
@@ -50,6 +53,7 @@ Dir.foreach Dir.pwd do |name|
     puts "\e[32mDatabase is #{data.name}\e[0m"
 
     # Dump the database
+    # Backup evrything
     # -----------------------------------------------
     begin
       dump = conf["backup_directory"]+'/'+name+'.sql'
@@ -57,6 +61,25 @@ Dir.foreach Dir.pwd do |name|
       dump_response = data.dump_to_file dump
       puts "\e[31m[KO] Maybe mysqldump is missing !\e[0m" if dump_response.nil?
       puts dump_response ? "\e[32m[OK] Dump success\e[0m" : "\e[31m[KO] Dump errror\e[0m"
+      if dump_response
+        if conf["tarsnap"]
+          puts "\e[34mTarsnapping #{name}\e[0m"
+          system "tarsnap -cf #{name}_database_#{date_string} #{dump}"
+          system "tarsnap -cf #{name}_filesystem_#{date_string} #{path}"
+        end
+        if conf["targz"]
+          puts "\e[34mTar&Gzipping #{name}\e[0m"
+          system "tar -czf #{conf["backup_directory"]}/#{name}_database_#{date_string}.tar.gz #{dump}"
+          system "tar -czf #{conf["backup_directory"]}/#{name}_filesystem_#{date_string}.tar.gz #{path}"
+        end
+#        FIXME Zip have some errors ....
+#        if conf["zip"]
+#          puts "\e[34mZipping #{name}\e[0m"
+#          system "zip -jq#{conf["backup_directory"]}/#{name}_database_#{date_string} #{dump}"
+#          system "zip -jqr #{conf["backup_directory"]}/#{name}_filesystem_#{date_string} #{path}/*"
+#        end
+      end
+      system "rm #{dump}"
     rescue Exception => e
       puts "\e[31m#{e.message}\e[0m"
     end
