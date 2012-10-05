@@ -1,2 +1,5 @@
 webapps_directory: "/var/www/workspace42"
-backup_directory: "/tmp"
+backup_directory: "/var/www/workspace42/webf-backups"
+tarsnap: false
+targz: true
+zip: false
