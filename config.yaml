@@ -1,0 +1,3 @@
+source: "/var/www/workspace42"
+tmp: "/tmp"
+backup: "/var/www/workspace42/backup"
