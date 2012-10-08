@@ -1,8 +1,11 @@
-webf-backups
+Webfaction Backup Script
 ============
 
 Ruby script to backup known cms hosted on webfaction.com
-
+Supported CMS are:
+* Wordpress
+* Joomla!
+(not sure if it will recognize too old versions)
 
 ## How to use:
 
@@ -27,7 +30,7 @@ crontab -e
 ````
 
 
-## Edit crontab:
+### Edit crontab:
 If you want to backup one a month, add:
 ```sh
 * 3 1 * * ruby $HOME/webf-backups/backup.rb >/dev/null 2>&1
