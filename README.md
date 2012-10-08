@@ -5,7 +5,8 @@ Ruby script to backup known cms hosted on webfaction.com
 Supported CMS are:
 * Wordpress
 * Joomla!
-(not sure if it will recognize too old versions)
+
+not sure if it will recognize too old versions
 
 ## How to use:
 
