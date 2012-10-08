@@ -3,7 +3,9 @@ webf-backups
 
 Ruby script to backup known cms hosted on webfaction.com
 
-# How to use>
+
+
+## How to use>
 
 ```sh
 cd $HOME
@@ -14,7 +16,9 @@ sh ./update_directories.sh
 
 If you have installed tarsnap set "tarsnap: true" in config.yaml
 
-# How to schedule
+
+
+## How to schedule
 
 ```sh
 # to see scheduled jobs
@@ -23,6 +27,8 @@ crontab -l
 # to edit scheduled jobs
 crontab -e
 ````
+
+
 
 ## Edit crontab adding:
 If you want to backup one a month:
