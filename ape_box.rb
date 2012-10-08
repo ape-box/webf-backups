@@ -86,5 +86,65 @@ module ApeBox
       return data
     end
 
+    class Logger
+
+      attr_accessor :file, :stdout, :colorize
+      def initialize filename=nil, stdout=true, colors=false
+        @file = filename.nil? ? nil : filename
+        @stdout = stdout
+        @colorize = colors
+      end
+
+      def info message
+        put_tofile "[INFO] #{message}" unless @file.nil?
+        if @stdout
+          message = "\e[36m#{message}\e[0m" if @colorize
+          put_tostdout message
+        end
+      end
+
+      def error message
+        put_tofile "[ERROR] #{message}" unless @file.nil?
+        if @stdout
+          message = "\e[31m#{message}\e[0m" if @colorize
+          put_tostdout message
+        end
+      end
+
+      def good message
+        put_tofile "[OK] #{message}" unless @file.nil?
+        if @stdout
+          message = "\e[32m#{message}\e[0m" if @colorize
+          put_tostdout message
+        end
+      end
+
+      private
+
+      def put_tofile message
+        check_file
+        unless @file.nil?
+          File.open @file, "a+" do |file|
+            message.gsub! /[\r\n]+/, '-'
+            file.write "\n[#{Time.now}] #{message}"
+          end
+        end
+      end
+
+      def put_tostdout message
+        puts message
+      end
+
+      def check_file
+        if @file.is_a? String
+          system "touch #{@file}" unless Pathname(@file).exist?
+          raise "Invalid file "+filename unless Pathname(@file).writable_real?
+        else
+          @file = nil
+        end
+      end
+
+    end
+
   end
 end

@@ -6,6 +6,8 @@ require './ape_box'
 conf = YAML.load_file('config.yaml')
 today = Time.now
 date_string = "#{today.year}#{today.month}#{today.day}"
+logfile = conf['log_to_file'] ? conf['log_file'] : nil
+log = ApeBox::Backup::Logger.new logfile, conf['log_to_stdout'], true
 
 Dir.chdir conf["webapps_directory"]
 Dir.foreach Dir.pwd do |name|
@@ -18,7 +20,7 @@ Dir.foreach Dir.pwd do |name|
     throw :excluded_path unless FileTest.directory? name
     throw :excluded_path if name[0] == '.'
 
-    puts "\n\e[34mParsing #{path}\e[0m"
+    log.info "\nParsing #{path}"
     # Recognize e parse installation
     # --------------------------------------------------------------------------
     #
@@ -28,60 +30,64 @@ Dir.foreach Dir.pwd do |name|
       # Wordpress Blog
       # -------------------------------------------------------------
       when (FileTest.exist? path+'/wp-config.php') then
-        puts "\e[32mIt's a Wordpress installation!\e[0m"
+        log.good "It's a Wordpress installation!"
         begin
           data = ApeBox::Backup.parse_wordpress path+'/wp-config.php'
         rescue Exception => e
-          puts "\e[31m#{e.message}\e[0m"
+          log.error "#{e.message}"
           throw :excluded_path
         end
-      # Joomla! CMS
-      #-------------------------------------------------------------
+        # Joomla! CMS
+        #-------------------------------------------------------------
       when (FileTest.exist? path+'/configuration.php') then
-        puts "\e[32mIt's a Joomla! installation!\e[0m"
+        log.good "It's a Joomla! installation!"
         begin
           data = ApeBox::Backup.parse_joomla path+'/configuration.php'
         rescue Exception => e
-          puts "\e[31m#{e.message}\e[0m"
+          log.error "#{e.message}"
           throw :excluded_path
         end
         # Unknown Application
       else
-        puts "\e[34mI don't recognize any application to backup in this path!\e[0m"
+        log.info "I don't recognize any application to backup in this path!"
         throw :excluded_path
     end
-    puts "\e[32mDatabase is #{data.name}\e[0m"
+    log.good "Database is #{data.name}"
 
     # Dump the database
-    # Backup evrything
+    # Backup everything
     # -----------------------------------------------
     begin
       dump = conf["backup_directory"]+'/'+name+'.sql'
-      puts "\e[32mDumping on #{dump}\e[0m"
+      log.good "Dumping on #{dump}"
       dump_response = data.dump_to_file dump
-      puts "\e[31m[KO] Maybe mysqldump is missing !\e[0m" if dump_response.nil?
-      puts dump_response ? "\e[32m[OK] Dump success\e[0m" : "\e[31m[KO] Dump errror\e[0m"
+      if dump_response
+        log.good "Dump success"
+      elsif dump_response.nil?
+        log.error "Maybe mysqldump is missing !"
+      else
+        if dump_response.is_a? String
+          log.error "Dump error (#{dump_response}#"
+        else
+          log.error "Dump error (unknown)"
+        end
+      end
+
       if dump_response
         if conf["tarsnap"]
-          puts "\e[34mTarsnapping #{name}\e[0m"
+          log.info "Tarsnapping #{name}"
           system "tarsnap -cf #{name}_database_#{date_string} #{dump}"
           system "tarsnap -cf #{name}_filesystem_#{date_string} #{path}"
         end
         if conf["targz"]
-          puts "\e[34mTar&Gzipping #{name}\e[0m"
+          log.info "Tar&Gzipping #{name}"
           system "tar -czf #{conf["backup_directory"]}/#{name}_database_#{date_string}.tar.gz #{dump}"
           system "tar -czf #{conf["backup_directory"]}/#{name}_filesystem_#{date_string}.tar.gz #{path}"
         end
-#        FIXME Zip have some errors ....
-#        if conf["zip"]
-#          puts "\e[34mZipping #{name}\e[0m"
-#          system "zip -jq#{conf["backup_directory"]}/#{name}_database_#{date_string} #{dump}"
-#          system "zip -jqr #{conf["backup_directory"]}/#{name}_filesystem_#{date_string} #{path}/*"
-#        end
       end
       system "rm #{dump}"
     rescue Exception => e
-      puts "\e[31m#{e.message}\e[0m"
+      log.error "#{e.message}"
     end
 
   end
