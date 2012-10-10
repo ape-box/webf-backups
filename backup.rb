@@ -76,13 +76,13 @@ Dir.foreach Dir.pwd do |name|
       if dump_response
         if conf["tarsnap"]
           log.info "Tarsnapping #{name}"
-          system "tarsnap -cf #{name}_database_#{date_string} #{dump}"
-          system "tarsnap -cf #{name}_filesystem_#{date_string} #{path}"
+          system "tarsnap -cf #{date_string}_#{name}_database #{dump}"
+          system "tarsnap -cf #{date_string}_#{name}_filesystem #{path}"
         end
         if conf["targz"]
           log.info "Tar&Gzipping #{name}"
-          system "tar -czf #{conf["backup_directory"]}/#{name}_database_#{date_string}.tar.gz #{dump}"
-          system "tar -czf #{conf["backup_directory"]}/#{name}_filesystem_#{date_string}.tar.gz #{path}"
+          system "tar -czf #{conf["backup_directory"]}/#{date_string}_#{name}_database.tar.gz #{dump}"
+          system "tar -czf #{conf["backup_directory"]}/#{date_string}_#{name}_filesystem.tar.gz #{path}"
         end
       end
       system "rm #{dump}"
