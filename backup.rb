@@ -1,9 +1,11 @@
 #!/usr/bin/ruby
 
-require 'yaml'
-require './ape_box'
+pwd = File.dirname(__FILE__)
 
-conf = YAML.load_file('config.yaml')
+require 'yaml'
+require pwd+'/ape_box.rb'
+
+conf = YAML.load_file(pwd+'/config.yaml')
 today = Time.now
 date_string = sprintf "backup_%04d%02d%02d", today.year, today.month, today.day
 logfile = conf['log_to_file'] ? conf['log_file'] : nil
