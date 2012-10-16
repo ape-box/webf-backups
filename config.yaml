@@ -1,7 +1,8 @@
-webapps_directory: "/var/www/workspace42"
-backup_directory: "/var/www/workspace42/webf-backups"
+webapps_directory: "$HOME/workspace42"
+backup_directory: "$HOME/webf-backups"
 log_to_file: true
-log_file: "/var/www/workspace42/webf-backups/backup_log.txt"
-log_to_stdout: true
+log_file: "$HOME/webf-backups/backup_log.txt"
+log_to_stdout: false
 tarsnap: true
-targz: true
+tarsnap_bin: "$HOME/bin/tarsnap"
+targz: false

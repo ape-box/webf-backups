@@ -78,8 +78,9 @@ Dir.foreach Dir.pwd do |name|
       if dump_response
         if conf["tarsnap"]
           log.info "Tarsnapping #{name}"
-          system "tarsnap -cf #{date_string}_#{name}_database #{dump}"
-          system "tarsnap -cf #{date_string}_#{name}_filesystem #{path}"
+          tbin = conf["tarsnap_bin"]
+          system "#{tbin} -cf #{date_string}_#{name}_database #{dump}"
+          system "#{tbin} -cf #{date_string}_#{name}_filesystem #{path}"
         end
         if conf["targz"]
           log.info "Tar&Gzipping #{name}"
