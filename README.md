@@ -34,11 +34,21 @@ crontab -e
 ### Edit crontab:
 If you want to backup once a month, add:
 ```sh
-* 3 1 * * /usr/local/bin/ruby $HOME/webf-backups/backup.rb 2>> $HOME/cron.log
+# run on 3:00 every first day or the month
+* 3 1 * * /usr/local/bin/ruby /home/[username]/webf-backups/backup.rb 2>> $HOME/cron.log
+
+# alternatively
+@monthly /usr/local/bin/ruby /home/[username]/webf-backups/backup.rb 2>> $HOME/cron.log
 ````
 
 If you want to backup once a week, add:
 ```sh
-* 3 */7 * * /usr/local/bin/ruby $HOME/webf-backups/backup.rb $HOME/cron.log
+# run on 3:00 every first day or the month
+* 3 * * fri /usr/local/bin/ruby /home/[username]/webf-backups/backup.rb $HOME/cron.log
+
+# alternatively
+@weekly /usr/local/bin/ruby /home/[username]/webf-backups/backup.rb 2>> $HOME/cron.log
 ````
+
+For more on cron see : http://en.wikipedia.org/wiki/Crontab
 
