@@ -6,10 +6,22 @@ require 'yaml'
 require pwd+'/ape_box.rb'
 
 conf = YAML.load_file(pwd+'/config.yaml')
-today = Time.now
+
+ARGV.each do |arg|
+  key = arg.split('=')[0]
+  value = arg.split('=')[1]
+
+  if conf.has_key? key
+    puts conf[key]
+    conf[key] = value
+    puts conf[key]
+  end
+end
+
+today       = Time.now
 date_string = sprintf "backup_%04d%02d%02d", today.year, today.month, today.day
-logfile = conf['log_to_file'] ? conf['log_file'] : nil
-log = ApeBox::Backup::Logger.new logfile, conf['log_to_stdout'], true
+logfile     = conf['log_to_file'] ? conf['log_file'] : nil
+log         = ApeBox::Backup::Logger.new logfile, conf['log_to_stdout'], true
 
 Dir.chdir conf["webapps_directory"]
 Dir.foreach Dir.pwd do |name|
