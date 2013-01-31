@@ -12,9 +12,7 @@ ARGV.each do |arg|
   value = arg.split('=')[1]
 
   if conf.has_key? key
-    puts conf[key]
     conf[key] = value
-    puts conf[key]
   end
 end
 
