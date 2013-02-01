@@ -1,8 +1,11 @@
 webapps_directory: "/home/[username]/webapps"
-backup_directory: "/home/[username]/webf-backups"
+backup_directory: "/home/[username]/webf-backups/backups"
+tmp_directory: "/home/[username]/webf-backups/tmp"
 log_to_file: true
 log_file: "/home/[username]/webf-backups/backup_log.txt"
 log_to_stdout: false
 tarsnap: true
 tarsnap_bin: "/home/[username]/bin/tarsnap"
 targz: false
+clamdscan: "/home/[username]/clamav/bin/clamdscan"
+clamd_restart: "/home/[username]/bin/clamd-restart"

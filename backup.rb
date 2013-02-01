@@ -1,12 +1,17 @@
 #!/usr/bin/ruby
 
+##
+# Set PWD and CONFIGURATION variables and load libraries
+##
 pwd = File.dirname(__FILE__)
-
 require 'yaml'
 require pwd+'/ape_box.rb'
-
 conf = YAML.load_file(pwd+'/config.yaml')
 
+##
+# Check for arguments passed to the script
+# actually only configuration override
+##
 ARGV.each do |arg|
   key = arg.split('=')[0]
   value = arg.split('=')[1]
@@ -16,31 +21,43 @@ ARGV.each do |arg|
   end
 end
 
+##
+# Setup time and log settings
+##
 today       = Time.now
-date_string = sprintf "backup_%04d%02d%02d", today.year, today.month, today.day
+date_string = sprintf("backup_%04d%02d%02d", today.year, today.month, today.day)
 logfile     = conf['log_to_file'] ? conf['log_file'] : nil
-log         = ApeBox::Backup::Logger.new logfile, conf['log_to_stdout'], true
+log         = ApeBox::Backup::Logger.new(logfile, conf['log_to_stdout'], true)
 
 Dir.chdir conf["webapps_directory"]
 Dir.foreach Dir.pwd do |name|
+  ##
   # "path" must be a fully qualified directory name
   # "name" refer only to the base name
+  ##
   path = conf["webapps_directory"][-1] == '/' ? conf["webapps_directory"]+name : conf["webapps_directory"]+'/'+name
 
+  ##
   # throw/cath used to prune directories, there is a better/cleaner way ?
+  ##
   catch :excluded_path do
     throw :excluded_path unless FileTest.directory? name
     throw :excluded_path if name[0] == '.'
 
-    log.info "\nParsing #{path}"
+    ##
     # Recognize e parse installation
     # --------------------------------------------------------------------------
     #
     # Check if path contain a wordpress or joomla installation otherwise: prune!
     # TODO rewrite the code in a object oriented way
+    ##
+    log.info "\nParsing #{path}"
     case true
+
+      ##
       # Wordpress Blog
       # -------------------------------------------------------------
+      ##
       when (FileTest.exist? path+'/wp-config.php') then
         log.good "It's a Wordpress installation!"
         begin
@@ -49,8 +66,11 @@ Dir.foreach Dir.pwd do |name|
           log.error "#{e.message}"
           throw :excluded_path
         end
+
+        ##
         # Joomla! CMS
         #-------------------------------------------------------------
+        ##
       when (FileTest.exist? path+'/configuration.php') then
         log.good "It's a Joomla! installation!"
         begin
@@ -59,16 +79,21 @@ Dir.foreach Dir.pwd do |name|
           log.error "#{e.message}"
           throw :excluded_path
         end
+
+        ##
         # Unknown Application
+        #-------------------------------------------------------------
+        ##
       else
         log.info "I don't recognize any application to backup in this path!"
         throw :excluded_path
     end
     log.good "Database is #{data.name}"
 
-    # Dump the database
-    # Backup everything
+    ##
+    # Dump the database and Backup everything
     # -----------------------------------------------
+    ##
     begin
       dump = conf["backup_directory"]+'/'+name+'.sql'
       log.good "Dumping on #{dump}"

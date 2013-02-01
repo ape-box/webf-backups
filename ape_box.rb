@@ -1,6 +1,11 @@
 require 'pathname'
 
 module ApeBox
+  
+  def self.mailer message=''
+    system("/usr/bin/printf \"to: alessio.peternelli@gmail.com\r\nsubject: messaggio da check_and_restore su wbf2\r\n\r\n  #{message}\" | /usr/bin/sendmail alessio.peternelli@gmail.com")
+  end
+  
   module Backup
     # Database Data Container
     # -----------------------------------------------------------------------------------------------------------
