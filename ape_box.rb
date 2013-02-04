@@ -3,7 +3,7 @@ require 'pathname'
 module ApeBox
   
   def self.mailer message=''
-    system("/usr/bin/printf \"to: alessio.peternelli@gmail.com\r\nsubject: messaggio da check_and_restore su wbf2\r\n\r\n  #{message}\" | /usr/bin/sendmail alessio.peternelli@gmail.com")
+    system("/usr/bin/printf \"to: alessio.peternelli@gmail.com, deborah@incipitonline.it\r\nsubject: messaggio da check_and_restore su wbf2\r\n\r\n  #{message}\" | /usr/bin/sendmail alessio.peternelli@gmail.com deborah@incipitonline.it")
   end
   
   module Backup
@@ -89,6 +89,18 @@ module ApeBox
       data.pass = match[1]
 
       return data
+    end
+    
+    def self.list_backups(path, filter='.*')
+      reg_filter = Regexp.new("_#{filter}_filesystem\.tar\.gz$", Regexp::IGNORECASE)
+      Dir.entries(path).select {|n| n =~ reg_filter}
+    end
+    
+    def self.list_backups_tarsnap(tarsnap_bin, filter='.*')
+      list = %x("#{tarsnap_bin}" --list-archives)
+      list = list.split "\n"
+      reg_filter = Regexp.new("_#{filter}_filesystem$", Regexp::IGNORECASE)
+      list.select {|n| n =~ reg_filter}
     end
 
     class Logger

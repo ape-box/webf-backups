@@ -1,4 +1,4 @@
- #!/usr/bin/ruby
+#!/usr/bin/ruby
 
 ##
 # Set PWD and CONFIGURATION variables and load libraries
@@ -6,6 +6,7 @@
 pwd = File.dirname(__FILE__)
 require 'yaml'
 require pwd+'/ape_box.rb'
+
 conf = YAML.load_file(pwd+'/config.yaml')
 
 ##
@@ -32,7 +33,6 @@ scanner     = conf['clamdscan']
 
 Dir.chdir conf["webapps_directory"]
 Dir.foreach Dir.pwd do |name|
- 
   ##
   # "path" must be a fully qualified directory name
   # "name" refer only to the base name
@@ -42,9 +42,9 @@ Dir.foreach Dir.pwd do |name|
     throw :excluded_path unless FileTest.directory? name
     throw :excluded_path if (name[0].class == Fixnum && name[0].chr == '.')
     throw :excluded_path if (name[0].class == String && name[0] == '.')
-    
+
     cmd_result = %x("#{scanner}" -i "#{path}" 2>&1)
-    
+
     ##
     # Check if clamd is running
     ##
@@ -53,7 +53,7 @@ Dir.foreach Dir.pwd do |name|
       ApeBox::mailer "Errore:\r\n #{cmd_result}";
       throw :excluded_path
     end
-    
+
     ##
     # Check for infected files
     ##
@@ -65,8 +65,49 @@ Dir.foreach Dir.pwd do |name|
       if viruses == '0' || viruses == 0
         #puts 'no virus'
       else
+        # 1) Check if there is a targz archive to restore
+        #      or alternatively for a tarsnap one
+        # 2) Restore it
+        # 3) Notify restore
         ApeBox::mailer "è stato rillevato un virus nel sito #{name} nel percorso #{path}"
+
+        ##
+        # Check if there is a tar gz archive
+        ##
+        list = ApeBox::Backup::list_backups(conf["backup_directory"], name)
+        system "rm -r #{conf['tmp_directory']}/#{name} > /dev/null 2>&1"
+        system "mkdir --parents #{conf['tmp_directory']}/#{name}"
+        if (list.size > 0)
+          list.sort!
+          filename = list.last
+          system "tar -xzf #{conf["backup_directory"]}/#{filename} --directory=#{conf['tmp_directory']}/#{name}"
+        else
+          list = ApeBox::Backup::list_backups_tarsnap(conf['tarsnap_bin'], name)
+          if (list.size < 1)
+            ApeBox::mailer "Non è stato trovato alcun backup utilizzabile per il sito \"#{name}\""
+            throw :excluded_path
+          end
+          list.sort!
+          filename = list.last
+          system "#{conf['tarsnap_bin']} -xf #{filename} -C #{conf['tmp_directory']}/#{name}"
+        end
+
+        destination = "#{conf['webapps_directory']}/#{name}"
+        source      = "#{conf['tmp_directory']}/#{name}#{conf['webapps_directory']}/#{name}"
+
+        system "rm -r #{destination}/*"
+        Dir.foreach destination do |file|
+          system "rm -r #{destination}/#{file}" if file =~ /^\.[^.]+$/
+        end
+
+        system "mv #{source}/* #{destination}/"
+        Dir.foreach destination do |file|
+          system "mv #{source}/#{file} #{destination}/" if file =~ /^\.[^.]+$/
+        end
+
+        ApeBox::mailer "Nel sito #{name} è stato trovato un virus, ora il sito è stato ripristinato."
       end
     end
   end
 end
+

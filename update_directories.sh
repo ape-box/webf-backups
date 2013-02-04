@@ -10,6 +10,7 @@ echo "log_to_file: true" >> config.yaml
 echo "log_file: \""$PWD"/backup_log.txt\"" >> config.yaml
 echo "log_to_stdout: false" >> config.yaml
 echo "tarsnap: true" >> config.yaml
+echo "tarsnap_bin: \""$HOME"/bin/tarsnap" >> config.yaml
 echo "targz: false" >> config.yaml
 echo "clamdscan: \"$HOME/clamav/bin/clamdscan\"" >> config.yaml
 echo "clamd_restart: \"$HOME/bin/clamd-restart\"" >> config.yaml
