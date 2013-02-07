@@ -3,9 +3,22 @@ require 'pathname'
 module ApeBox
   
   def self.mailer message=''
-    system("/usr/bin/printf \"to: alessio.peternelli@gmail.com, deborah@incipitonline.it\r\nsubject: messaggio da check_and_restore su wbf2\r\n\r\n  #{message}\" | /usr/bin/sendmail alessio.peternelli@gmail.com deborah@incipitonline.it")
+    system("/usr/bin/printf \"to: alessio.peternelli@gmail.com, deborah@incipitonline.it\r\nContent-Type: text/plain; charset=utf8 \r\nsubject: messaggio da check_and_restore su wbf2\r\n\r\n  #{message}\" | /usr/bin/sendmail alessio.peternelli@gmail.com deborah@incipitonline.it")
   end
-  
+ 
+  def self.shellescape(str)
+    # An empty argument will be skipped, so return empty quotes.
+    return "''" if str.empty?
+    str = str.dup
+    # Process as a single byte sequence because not all shell
+    # implementations are multibyte aware.
+    str.gsub!(/([^A-Za-z0-9_\-.,:\/@\n])/n, "\\\\\\1")
+    # A LF cannot be escaped with a backslash because a backslash + LF
+    # combo is regarded as line continuation and simply ignored.
+    str.gsub!(/\n/, "'\n'")
+    return str
+  end
+   
   module Backup
     # Database Data Container
     # -----------------------------------------------------------------------------------------------------------
@@ -23,7 +36,7 @@ module ApeBox
         system "touch #{filename}" unless Pathname(filename).exist?
         raise "Invalid file "+filename unless Pathname(filename).writable_real?
 
-        system "mysqldump --user=#{@user} --password=#{@pass} --host=#{@host} --databases #{@name} > #{filename}"
+        %x(mysqldump --user=#{@user} --password='#{@pass}' --host=#{@host} --databases #{@name} > #{filename} 2>&1)
       end
     end
 

@@ -69,7 +69,7 @@ Dir.foreach Dir.pwd do |name|
         #      or alternatively for a tarsnap one
         # 2) Restore it
         # 3) Notify restore
-        ApeBox::mailer "è stato rillevato un virus nel sito #{name} nel percorso #{path}"
+        ApeBox::mailer "È stato rillevato un virus nel sito #{name} nel percorso #{path}"
 
         ##
         # Check if there is a tar gz archive

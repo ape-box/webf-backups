@@ -64,6 +64,7 @@ Dir.foreach Dir.pwd do |name|
           data = ApeBox::Backup.parse_wordpress path+'/wp-config.php'
         rescue Exception => e
           log.error "#{e.message}"
+          ApeBox::mailer "Error: #{e.message}\r\nName: #{name}\r\n"
           throw :excluded_path
         end
 
@@ -77,6 +78,7 @@ Dir.foreach Dir.pwd do |name|
           data = ApeBox::Backup.parse_joomla path+'/configuration.php'
         rescue Exception => e
           log.error "#{e.message}"
+          ApeBox::mailer "Error: #{e.message}\r\nName: #{name}\r\n"
           throw :excluded_path
         end
 
@@ -95,29 +97,29 @@ Dir.foreach Dir.pwd do |name|
     # -----------------------------------------------
     ##
     begin
-      dump = conf["backup_directory"]+'/'+name+'.sql'
+      dump = conf["tmp_directory"]+'/'+name+'.sql'
       log.good "Dumping on #{dump}"
       dump_response = data.dump_to_file dump
-      if dump_response
+      if $?.exitstatus == 0 && dump_response == '' 
         log.good "Dump success"
-      elsif dump_response.nil?
-        log.error "Maybe mysqldump is missing !"
       else
         if dump_response.is_a? String
-          log.error "Dump error (#{dump_response}#"
+          log.error "Dump error (#{dump_response})"
+          ApeBox::mailer  "Dump error (#{dump_response})\r\nName: #{name}\r\n"
         else
           log.error "Dump error (unknown)"
+          ApeBox::mailer  "Dump error (unknown)\r\nName: #{name}\r\n"
         end
       end
 
       if dump_response
-        if conf["tarsnap"] == true || conf["tarsnap"] == 'true'
+        if conf["tarsnap"] === true || conf["tarsnap"] === 'true'
           log.info "Tarsnapping #{name}"
           tbin = conf["tarsnap_bin"]
           system "#{tbin} -cf #{date_string}_#{name}_database #{dump}"
           system "#{tbin} -cf #{date_string}_#{name}_filesystem #{path}"
         end
-        if conf["targz"] == true || conf["targz"] == 'true'
+        if conf["targz"] === true || conf["targz"] === 'true'
           log.info "Tar&Gzipping #{name}"
           system "tar -czf #{conf["backup_directory"]}/#{date_string}_#{name}_database.tar.gz #{dump}"
           system "tar -czf #{conf["backup_directory"]}/#{date_string}_#{name}_filesystem.tar.gz #{path}"
@@ -126,6 +128,7 @@ Dir.foreach Dir.pwd do |name|
       system "rm #{dump}"
     rescue Exception => e
       log.error "#{e.message}"
+      ApeBox::mailer "Error: #{e.message}\r\nName: #{name}\r\n"
     end
 
   end
