@@ -1,11 +1,11 @@
 require 'pathname'
 
 module ApeBox
-  
+
   def self.mailer message=''
     system("/usr/bin/printf \"to: alessio.peternelli@gmail.com, deborah@incipitonline.it\r\nContent-Type: text/plain; charset=utf8 \r\nsubject: messaggio da check_and_restore su wbf2\r\n\r\n  #{message}\" | /usr/bin/sendmail alessio.peternelli@gmail.com deborah@incipitonline.it")
   end
- 
+
   def self.shellescape(str)
     # An empty argument will be skipped, so return empty quotes.
     return "''" if str.empty?
@@ -18,7 +18,7 @@ module ApeBox
     str.gsub!(/\n/, "'\n'")
     return str
   end
-   
+
   module Backup
     # Database Data Container
     # -----------------------------------------------------------------------------------------------------------
@@ -103,12 +103,12 @@ module ApeBox
 
       return data
     end
-    
+
     def self.list_backups(path, filter='.*')
-      reg_filter = Regexp.new("_#{filter}_filesystem\.tar\.gz$", Regexp::IGNORECASE)
+      reg_filter = Regexp.new("backup_[0-9]+_#{filter}_filesystem\.tar\.gz$", Regexp::IGNORECASE)
       Dir.entries(path).select {|n| n =~ reg_filter}
     end
-    
+
     def self.list_backups_tarsnap(tarsnap_bin, filter='.*')
       list = %x("#{tarsnap_bin}" --list-archives)
       list = list.split "\n"
